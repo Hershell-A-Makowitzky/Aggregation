@@ -1,13 +1,23 @@
 #!/bin/bash
 
-# Process value from the command line
-NUMBER=$(echo "$1" | grep -E "^[0-9]+$")
+## Binary formated output of provided 32-bit possitive integer number 
 
-# Test if provided value is possitive integer
+# Process a number from the command line
+NUMBER=$(echo "$1" | grep -E "^[0-9]+$")
+LIMIT=4294967296
+
+# Test if provided number is a possitive integer
 if test -z "$NUMBER"
 then
     echo "Malformated input."
     exit 1
+fi
+
+# Test if provided number has 32-bit width
+if test $(($1)) -ge $LIMIT
+then
+    echo "Provided number is exceeds 32-bit limitation."
+    exit 2
 fi
 
 # Construction of the (256 x 8-bit) matrix
