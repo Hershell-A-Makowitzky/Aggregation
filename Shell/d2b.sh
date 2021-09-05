@@ -16,7 +16,7 @@ fi
 # Test if provided number has 32-bit width
 if test $(($1)) -ge $LIMIT
 then
-    echo "Provided number is exceeds 32-bit limitation."
+    echo "Provided number exceeds 32-bit limitation."
     exit 2
 fi
 
@@ -35,3 +35,4 @@ NUMBER=$(($NUMBER >> 8))
 
 # Final output
 echo "0b ${MATRIX[$RESULT_INT]} ${MATRIX[RESULT_SHORT_PLUS_CHAR]} ${MATRIX[$RESULT_SHORT]} ${MATRIX[$RESULT_CHAR]}"
+
