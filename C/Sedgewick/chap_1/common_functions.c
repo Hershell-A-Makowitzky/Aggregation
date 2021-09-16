@@ -11,7 +11,7 @@ int convert() {
 
 void binary(int x) {
 	int i = 1;
-	int j = x / 2 * 2;
+	int j = x;
 	printf("Number %d in binary is: 0b", x);
 	for (; x >= i; i *= 2, j >>= 1) {
 		(x & j) > 0 ? printf("1") : printf("0");
