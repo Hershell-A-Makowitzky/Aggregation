@@ -10,10 +10,13 @@ int convert() {
 }
 
 void binary(int x) {
-	int i = 1;
-	int j = x;
+    	int i = x;
+	int j = 1;
+	while ((i >>= 1) > 0) {
+	    j <<= 1;
+	}
 	printf("Number %d in binary is: 0b", x);
-	for (; x >= i; i *= 2, j >>= 1) {
+	for (; j > 0; j >>= 1) {
 		(x & j) > 0 ? printf("1") : printf("0");
 	}
 	printf("\n");
