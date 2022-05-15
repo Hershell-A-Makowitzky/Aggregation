@@ -72,7 +72,7 @@ main(int argc, char** argv)
 	
 	if ((string_length = strlen(argv[1])) > 63)
 	{
-		printf("Maximal string length < 64 (You've given string size of %zu)\n", string_length);
+		printf("Maximal string length < 64 (You've provided string of size %zu)\n", string_length);
 		return (1);
 	}
 
