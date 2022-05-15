@@ -5,6 +5,7 @@
 #include<pthread.h>
 
 #define THREAD_COUNT 8
+#define STR_LEN 64
 
 static int done = 0;
 static const char* input;
@@ -31,7 +32,7 @@ calc(void* arg)
 	size_t string_length = 0;
 	size_t increment_length = 0;
 	const char* argv_iterator = input;
-	char sha_input[64] = {'\0'};
+	char sha_input[STR_LEN] = {'\0'};
 
 	while (*(argv_iterator) != 0) 
 	{
@@ -72,7 +73,7 @@ main(int argc, char** argv)
 	
 	if ((string_length = strlen(argv[1])) > 63)
 	{
-		printf("Maximal string length < 64 (You've provided string of size %zu)\n", string_length);
+		printf("Maximal string length < %d (You've provided string of size %zu)\n", string_length, STR_LEN);
 		return (1);
 	}
 
