@@ -19,8 +19,6 @@ pub fn main() !noreturn {
 }
 
 fn calculate(input_seed: u64, input: [:0] const u8) !void {
-    std.debug.print("Number: {}\n", .{input_seed});
-    std.debug.print("Input: {s}\n", .{input});
     var seed = input_seed;
     const limit = seed << 2;
     var result: [sha256.digest_length]u8 = undefined;
