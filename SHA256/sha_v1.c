@@ -1,3 +1,8 @@
+/* Compilation: cc -Wall -Werror -pedantic -O2 \
+-I <path to openssl include> \
+-L <path to openssl lib> \
+-lcrypto -pthread -o sha sha_v1.c */
+
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
