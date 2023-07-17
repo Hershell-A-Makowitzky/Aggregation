@@ -9,8 +9,8 @@ LIBS = -I$(OPENSSL)/include -L$(OPENSSL)/lib -lcrypto -o $(OUTPUT)
 
 .PHONY: all debug
 
-all: sha_v1.c
+all: sha.c
 	$(CC) $(CFLAGS) $(LIBS) $<
 
-debug: sha_v1.c
+debug: sha.c
 	$(CC) $(CFLAGS) $(DEBUG) $(LIBS) $<
