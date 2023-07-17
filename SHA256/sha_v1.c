@@ -1,70 +1,90 @@
-/* Compilation: cc -Wall -Werror -pedantic -O2 \ */
-/* -I <path to openssl include> \ */
-/* -L <path to openssl lib> \ */
-/* -lcrypto -pthread -o sha sha_v1.c */
-
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "openssl/sha.h"
 #include <pthread.h>
 
-#define THREAD_COUNT 8
+#define ULL_WIDTH 20
+#define number unsigned long long int
 #define STR_LEN 64
-#define ULL_WIDTH 21
 
-static const char* commandline_input;
-static _Thread_local unsigned char result[SHA256_DIGEST_LENGTH];
-static const unsigned long long int bruteforce_incremented_integer = 10000000ULL;
-static const unsigned long long int bruteforce_incremented_arr[THREAD_COUNT] = {
-	bruteforce_incremented_integer,
-	bruteforce_incremented_integer << 2,
-	bruteforce_incremented_integer << 4,
-	bruteforce_incremented_integer << 6,
-	bruteforce_incremented_integer << 8,
-	bruteforce_incremented_integer << 10,
-	bruteforce_incremented_integer << 12,
-	bruteforce_incremented_integer << 14,
-};
+#ifndef THREAD_COUNT
+#define THREAD_COUNT 6
+#endif
+
+static const char* cmd_in;
+static const number bii = 10000000ULL;
+static number bia[THREAD_COUNT];
+
+static void init(void) {
+	if (THREAD_COUNT > 0 && THREAD_COUNT <=16 ) {
+		for (size_t i = 0; i < THREAD_COUNT; i++) {
+			if (i == 0) {
+				bia[i] = bii;
+			}
+			bia[i] = bii << (i * 2);
+		}
+	} else {
+		printf("THREADS EXHAUSTED!");
+		exit(1);
+	}
+}
 
 static void* calc(void* arg) {
 
-	unsigned long long int bruteforce_incremented_integer = *(unsigned long long int *) arg;
-	const unsigned long long int limit = bruteforce_incremented_integer << 2;
-	size_t commnadline_input_string_length = 0;
-	const char* argv_iterator = commandline_input;
-	char sha_input[STR_LEN + ULL_WIDTH] = {'\0'};
+	unsigned char result[SHA256_DIGEST_LENGTH];
+	number bii = *(number *) arg;
+	const number limit = bii << 2;
+	size_t cmd_in_str_len = 0;
+	const char* argv_iterator = cmd_in;
+	char sha_in[STR_LEN + ULL_WIDTH] = {'\0'};
 	size_t counter = 0;
-	size_t sha_input_length = counter;
+	size_t sha_in_len = counter;
+
+	#ifdef DEBUG
+	printf("%llu\n", bii);
+	#endif
 
 	while (*(argv_iterator) != 0) {
-		sha_input[commnadline_input_string_length] = *argv_iterator;
-		commnadline_input_string_length++, argv_iterator++;
+		sha_in[cmd_in_str_len] = *argv_iterator;
+		cmd_in_str_len++, argv_iterator++;
 	}
 
-	for (;bruteforce_incremented_integer < limit;) {
+	while (bii < limit) {
 
-		unsigned long long int local = bruteforce_incremented_integer;
+		number local = bii;
 
 		while (local > 0) {
 			counter++;
 			local /= 10;
 		}
 
-		local = bruteforce_incremented_integer;
-		counter += commnadline_input_string_length;
-		sha_input_length = counter;
+		local = bii;
+		counter += cmd_in_str_len;
+		sha_in_len = counter;
 
 		while (local > 0) {
-			sha_input[--counter] = local % 10 + 48;
+			sha_in[--counter] = local % 10 + 48;
 			local /= 10;
 		}
 
-		SHA256((unsigned char*) sha_input, sha_input_length, result);
+		SHA256((unsigned char*) sha_in, sha_in_len, result);
 
-		if (result[0] == 0 && result[1] == 0 && result[2] == 0 && result[3] < 64 && result[3] > 31) {
+		#ifdef DEBUG
+		printf("SHA_IN: %s\n", sha_in);
+		printf("SHA_LENGTH: %zu\n", sha_in_len);
+		printf("RESULT: %d\n", result[0] == 0 && result[1] == 0 && result[2] == 0 && result[3] > 31 && result[3] < 64);
+		printf("Append: %llu\n", bii);
+		for (size_t i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+			printf("%02x", result[i]);
+		}
+		exit(1);
+		#endif
 
-			printf("Append: %llu\n", bruteforce_incremented_integer);
+		if (result[0] == 0 && result[1] == 0 && result[2] == 0 && result[3] > 31 && result[3] < 64) {
+
+			printf("Append: %llu\n", bii);
 
 			for (size_t i = 0; i < SHA256_DIGEST_LENGTH; i++) {
 				printf("%02x", result[i]);
@@ -74,16 +94,21 @@ static void* calc(void* arg) {
 			exit(0);
 		}
 
-		bruteforce_incremented_integer++;
+		bii++;
 		counter = 0;
 	}
 
+	#ifdef DEBUG
+	puts("DONE");
+	#endif
 	return NULL;
 }
 
 int main(int argc, char** argv) {
 
-	size_t commnadline_input_string_length;
+	init();
+
+	size_t cmd_in_str_len;
 	pthread_t thread_arr[THREAD_COUNT];
 
 	if (argc != 2) {
@@ -91,19 +116,16 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	if ((commnadline_input_string_length = strlen(argv[1])) > 63) {
-		printf("Maximal string length < %d (You've provided string of size %zu)\n", STR_LEN, commnadline_input_string_length);
+	if ((cmd_in_str_len = strlen(argv[1])) > 63) {
+		printf("Maximal string length < %d (You've provided string of size %zu)\n", STR_LEN, cmd_in_str_len);
 		return 1;
 	}
 
-	commandline_input = argv[1];
+	cmd_in = argv[1];
 	puts("Calculating...");
 
 	for (size_t i = 0; i < THREAD_COUNT; i++) {
-		pthread_create(&thread_arr[i], NULL, &calc, (void *) &bruteforce_incremented_arr[i]);
-	}
-
-	for (size_t i = 0; i < THREAD_COUNT; i++) {
+		pthread_create(&thread_arr[i], NULL, &calc, (void *) &bia[i]);
 		pthread_detach(thread_arr[i]);
 	}
 
